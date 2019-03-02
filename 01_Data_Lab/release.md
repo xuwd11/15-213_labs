@@ -1,7 +1,4 @@
 <html>
-  <head>
-    Data Lab Release Notes
-  </head>
 
   <body bgcolor=white>
     <h1>Data Lab Release Notes</h1>
