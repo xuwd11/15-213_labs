@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Data Lab Release Notes</title>
+    Data Lab Release Notes
   </head>
 
   <body bgcolor=white>
