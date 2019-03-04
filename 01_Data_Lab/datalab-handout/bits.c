@@ -198,7 +198,9 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  int result;
+  result = ~x + 1;
+  return result;
 }
 //3
 /* 
@@ -211,7 +213,15 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int cond1;
+  int cond2;
+  int cond3;
+  int result;
+  cond1 = !((0X30 ^ x) >> 4);
+  cond2 = !(8 & x);
+  cond3 = !(6 & x);
+  result = cond1 & (cond2 | cond3);
+  return result;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -221,7 +231,12 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  /* build mask 0XFFFFFFFF if x is FALSE else 0X00000000 */
+  int mask;
+  int result;
+  mask = ~(!x) + 1;
+  result = ((~mask) & y) | (mask & z);
+  return result;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -231,7 +246,15 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int diff;
+  int cond1;
+  int cond2;
+  int result;
+  diff = ~x + 1 + y;
+  cond1 = x & (~y);
+  cond2 = (~(x ^ y)) & (~diff);
+  result = ((cond1 | cond2) >> 31) & 1;
+  return result;
 }
 //4
 /* 
