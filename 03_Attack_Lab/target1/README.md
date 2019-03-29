@@ -1,3 +1,12 @@
+# Attack Lab
+## Usage
+Run
+```bash
+cat ctarget_1.txt | ./hex2raw | ./ctarget -q
+cat ctarget_2.txt | ./hex2raw | ./ctarget -q
+```
+
+## Original README
 This file contains materials for one instance of the attacklab.
 
 Files:
