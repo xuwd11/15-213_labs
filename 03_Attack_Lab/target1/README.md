@@ -4,6 +4,7 @@ Run
 ```bash
 cat ctarget_1.txt | ./hex2raw | ./ctarget -q
 cat ctarget_2.txt | ./hex2raw | ./ctarget -q
+cat ctarget_3.txt | ./hex2raw | ./ctarget -q
 ```
 
 ## Original README
