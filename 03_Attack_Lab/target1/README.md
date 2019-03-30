@@ -5,6 +5,9 @@ Run
 cat ctarget_1.txt | ./hex2raw | ./ctarget -q
 cat ctarget_2.txt | ./hex2raw | ./ctarget -q
 cat ctarget_3.txt | ./hex2raw | ./ctarget -q
+
+cat rtarget_2.txt | ./hex2raw | ./rtarget -q
+cat rtarget_3.txt | ./hex2raw | ./rtarget -q
 ```
 
 ## Original README
