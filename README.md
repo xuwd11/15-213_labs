@@ -4,3 +4,4 @@ My solution to labs in [CS:APP3e](http://csapp.cs.cmu.edu/3e/labs.html).
 
 * Lab 01: Data Lab ([**done**](/01_Data_Lab/datalab-handout/bits.c))
 * Lab 02: Bomb Lab ([**done**](/02_Bomb_Lab/bomb/psol.txt))
+* Lab 03: Attack Lab ([**done**](/03_Attack_Lab/target1))
