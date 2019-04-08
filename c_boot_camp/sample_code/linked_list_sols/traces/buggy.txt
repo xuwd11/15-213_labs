@@ -1,0 +1,14 @@
+ 1 
+a 1
+a 2
+a 1 
+a 3 
+a 2
+d 1
+d 2
+p 4
+p 9
+p 7 
+m add_1
+m square
+m next_pow_2
