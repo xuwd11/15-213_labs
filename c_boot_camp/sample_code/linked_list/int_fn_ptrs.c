@@ -9,7 +9,7 @@ void print_int(elem e) {
 bool ints_equal(elem e1, elem e2) { 
     REQUIRES(e1 != NULL && e2 != NULL); 
     /* TODO: Implement this */
-    return false; 
+    return *(int*)(e1) == *(int*)(e2);
 }
 
 void add_1(elem e) {
@@ -27,4 +27,13 @@ void square(elem e) {
 void next_pow_2(elem e) { 
     REQUIRES(e != NULL);
     /* TODO: Implement this */
+    int val = *(int*)(e);
+    int b = 0;
+    for (int i = sizeof(int) * 8 - 1; i >= 0; i--) {
+        if (val >> i & 0x1) {
+            b = i + 1;
+            break;
+        }
+    }
+    *(int*)(e) = 1 << b;
 }

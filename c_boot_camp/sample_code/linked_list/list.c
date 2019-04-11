@@ -46,15 +46,22 @@ bool is_linked_list(list l) {
 /* Implementation */
 /*************************/
 list new_list(elem_free data_free, print_elem print_data, are_equal data_equals) { 
+    REQUIRES(print_data != NULL); 
+    REQUIRES(data_equals != NULL);
     
     /* TODO: Finish this function */
     list l = xmalloc(sizeof(struct linked_list));
     l->size = 0;
     // so gcc doesn't yell at us
-    (void)l;
-    (void)data_free; 
-    (void)print_data; 
-    (void)data_equals;   
+    l->start = xmalloc(sizeof(struct list_node));
+    l->end = xmalloc(sizeof(struct list_node));
+    l->start->next = l->end;
+    l->end->prev = l->start;
+
+    l->data_free = data_free;
+    l->print_data = print_data;
+    l->data_equals = data_equals;
+
     ENSURES(is_linked_list(l)); 
     return l; 
 }
@@ -67,7 +74,12 @@ void append_node(elem e, list l) {
     node n = xmalloc(sizeof(struct list_node)); 
     n->data = e; 
 
-    (void)n; 
+    n->prev = l->end->prev;
+    l->end->prev->next = n;
+    n->next = l->end;
+    l->end->prev = n;
+    l->size++;
+
     ENSURES(is_linked_list(l)); 
 
 }
@@ -88,21 +100,50 @@ void prepend_node(elem e, list l) {
     ENSURES(is_linked_list(l)); 
 }
 
+static void delete_node(node p, list l) {
+    node prev = p->prev;
+    node next = p->next;
+    prev->next = next;
+    next->prev = prev;
+    if (l->data_free) {
+        (*(l->data_free))(p->data);
+    }
+    free(p);
+    l->size--;
+}
+
 elem delete_nodes(elem e, list l) {
     REQUIRES(e != NULL);
     REQUIRES(is_linked_list(l)); 
 
     /* TODO: Finish this function */
+    elem found_elem = NULL;
+    node p = l->start->next;
+    while (p != l->end) {
+        if ((*(l->data_equals))(e, p->data)) {
+            found_elem = p->data;
+            node n = p->next;
+            delete_node(p, l);
+            p = n;
+            continue;
+        }
+        p = p->next;
+    }
 
     ENSURES(is_linked_list(l)); 
-    return NULL;  
+    return found_elem;  
 }
 
 void map(list l, map_fn fn) { 
     REQUIRES(is_linked_list(l)); 
+    REQUIRES(fn != NULL);
 
     /* TODO: Finish this function */
-    (void)fn; 
+    node p = l->start->next;
+    while (p != l->end) {
+        (*fn)(p->data);
+        p = p->next;
+    }
 
     ENSURES(is_linked_list(l));
 }
@@ -116,6 +157,12 @@ void print_list(list l) {
     REQUIRES(is_linked_list(l)); 
 
     /* TODO: Finish this function */
+    node p = l->start->next;
+    while (p != l->end) {
+        (*(l->print_data))(p->data);
+        printf("\n");
+        p = p->next;
+    }
 
     ENSURES(is_linked_list(l));
 
@@ -125,4 +172,16 @@ void free_list(list l) {
     REQUIRES(is_linked_list(l));
 
     /* TODO: Finish this function */
+    node p = l->start->next;
+    while (p != l->end) {
+        node n = p->next;
+        if (l->data_free) {
+            (*(l->data_free))(p->data);
+        }
+        free(p);
+        p = n;
+    }
+    free(l->start);
+    free(l->end);
+    free(l);
 }
