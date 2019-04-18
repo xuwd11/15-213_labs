@@ -21,7 +21,17 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
  */
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
-{
+{   
+    if (M == 61 && N == 67) {
+        int i, j, i1, j1, b = 22;
+
+        for (i = 0; i < N; i += b)
+            for (j = 0; j < M; j += b)
+                for (i1 = i; i1 < i + b && i1 < N; i1++)
+                    for (j1 = j; j1 < j + b && j1 < M; j1++)
+                        B[j1][i1] = A[i1][j1];  
+    }
+
 }
 
 /* 
@@ -32,6 +42,7 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 /* 
  * trans - A simple baseline transpose function, not optimized for the cache.
  */
+
 char trans_desc[] = "Simple row-wise scan transpose";
 void trans(int M, int N, int A[N][M], int B[M][N])
 {
@@ -59,7 +70,7 @@ void registerFunctions()
     registerTransFunction(transpose_submit, transpose_submit_desc); 
 
     /* Register any additional transpose functions */
-    registerTransFunction(trans, trans_desc); 
+    //registerTransFunction(trans, trans_desc); 
 
 }
 

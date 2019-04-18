@@ -29,5 +29,5 @@ clean:
 	rm -f *.tar
 	rm -f csim
 	rm -f test-trans tracegen
-	rm -f trace.all trace.f*
+	rm -f trace.all trace.f* trace.tmp
 	rm -f .csim_results .marker
