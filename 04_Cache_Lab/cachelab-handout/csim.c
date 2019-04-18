@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    cache_line* cache = (cache_line*)malloc(sizeof(cache) * params.S * params.E);
+    cache_line* cache = (cache_line*)malloc(sizeof(cache_line) * params.S * params.E);
     for (int i = 0; i < params.S * params.E; i++) {
         (cache + i)->valid = 0;
         (cache + i)->tag = 0Xffffffff;
