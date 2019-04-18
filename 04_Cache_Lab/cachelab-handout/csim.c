@@ -16,13 +16,13 @@ typedef struct {
 
 typedef struct {
     int valid;
-    unsigned long long tag;
+    unsigned long int tag;
 } cache_line;
 
 typedef struct {
     char operation;
-    unsigned long long address;
-    unsigned long long tag, set_index;
+    unsigned long int address;
+    unsigned long int tag, set_index;
     int size;
 } operation;
 
@@ -35,7 +35,42 @@ void print_help_info(void) {
 }
 
 void caching(cache_line* cache, cache_params params, operation op, summary* summ) {
-    ;
+    cache_line* set = cache + op.set_index * params.E;
+    int i = 0, result = EVICTION;
+    for (; i < params.E; i++) {
+        if ((set + i)->valid == 0) {
+            result = MISS;
+            break;
+        }
+        if ((set + i)->tag == op.tag) {
+            result = HIT;
+            break;
+        }
+    }
+
+    switch (result) {
+        case HIT:
+            for (; (i < params.E - 1) && ((set + i + 1)->valid == 1); i++)
+                (set + i)->tag = (set + i + 1)->tag;
+            (set + i)->tag = op.tag;
+            summ->hit_count++;
+            break;
+        case MISS:
+            (set + i)->tag = op.tag;
+            (set + i)->valid = 1;
+            summ->miss_count++;
+            break;
+        case EVICTION:
+            for (i = 0; i < params.E - 1; i++)
+                (set + i)->tag = (set + i + 1)->tag;
+            (set + i)->tag = op.tag;
+            summ->miss_count++;
+            summ->eviction_count++;
+            break;
+    }
+
+    if (op.operation == 'M')
+        summ->hit_count++;
 }
 
 int main(int argc, char** argv) {
@@ -83,9 +118,10 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    cache_line* cache = malloc(sizeof(cache) * params.S * params.E);
+    cache_line* cache = (cache_line*)malloc(sizeof(cache) * params.S * params.E);
     for (int i = 0; i < params.S * params.E; i++) {
         (cache + i)->valid = 0;
+        (cache + i)->tag = 0Xffffffff;
     }
 
     summary summ;
@@ -94,13 +130,14 @@ int main(int argc, char** argv) {
     operation op;
 
     FILE* file = fopen(tracefile, "r");
-    while (fscanf(file, " %c %llx,%d", &op.operation, &op.address, &op.size) > 0) {
+    while (fscanf(file, " %c %lx,%d", &op.operation, &op.address, &op.size) > 0) {
+        if (op.operation == 'I')
+            continue;
         op.tag = op.address >> (params.s + params.b);
         op.set_index = (op.address >> params.b) & (~(~0 << params.s));
         caching(cache, params, op, &summ);
     }
     fclose(file);
-
     free(cache);
 
     printSummary(summ.hit_count, summ.miss_count, summ.eviction_count);
