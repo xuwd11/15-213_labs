@@ -21,6 +21,7 @@ typedef struct {
 
 typedef struct {
     char operation;
+    unsigned long long address;
     unsigned long long tag, set_index;
     int size;
 } operation;
@@ -30,6 +31,10 @@ typedef struct {
 } summary;
 
 void print_help_info(void) {
+    ;
+}
+
+void caching(cache_line* cache, cache_params params, operation op, summary* summ) {
     ;
 }
 
@@ -78,10 +83,26 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
+    cache_line* cache = malloc(sizeof(cache) * params.S * params.E);
+    for (int i = 0; i < params.S * params.E; i++) {
+        (cache + i)->valid = 0;
+    }
+
+    summary summ;
+    summ.hit_count = 0, summ.miss_count = 0, summ.eviction_count = 0;
+
+    operation op;
+
     FILE* file = fopen(tracefile, "r");
-    if (file != NULL);
+    while (fscanf(file, " %c %llx,%d", &op.operation, &op.address, &op.size) > 0) {
+        op.tag = op.address >> (params.s + params.b);
+        op.set_index = (op.address >> params.b) & (~(~0 << params.s));
+        caching(cache, params, op, &summ);
+    }
     fclose(file);
 
-    printSummary(0, 0, 0);
+    free(cache);
+
+    printSummary(summ.hit_count, summ.miss_count, summ.eviction_count);
     return 0;
 }
