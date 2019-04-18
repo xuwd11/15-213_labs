@@ -30,8 +30,18 @@ typedef struct {
     int hit_count, miss_count, eviction_count;
 } summary;
 
-void print_help_info(void) {
-    ;
+void usage(void) {
+    printf("Usage: ./csim [-hv] -s <s> -E <E> -b <b> -t <tracefile>\n");
+    printf("Options:\n");
+    printf("  -h              Optional help flag that prints usage info\n");
+    printf("  -v              Optional verbose flag that displays trace info\n");
+    printf("  -s <s>          Number of set index bits (S = 2^s is the number of sets)\n");
+    printf("  -E <E>          Associativity (number of lines per set)\n");
+    printf("  -b <b>          Number of block bits (B = 2b is the block size)\n");
+    printf("  -t <tracefile>  Name of the valgrind trace to replay\n\n");
+    printf("Examples:\n");
+    printf("  linux> ./csim -s 4 -E 1 -b 4 -t traces/yi.trace\n");
+    printf("  linux> ./csim -v -s 4 -E 1 -b 4 -t traces/yi.trace\n");
 }
 
 void caching(cache_line* cache, cache_params params, operation op, summary* summ) {
@@ -102,19 +112,19 @@ int main(int argc, char** argv) {
                 break;
             default:
                 printf("Argument error!\n\n");
-                print_help_info();
+                usage();
                 exit(1);
         }
     }
 
     if (params.s <= 0 || params.E <= 0 || params.b <= 0 || trace == 0) {
         printf("Argument error!\n\n");
-        print_help_info();
+        usage();
         exit(1);
     }
 
     if (params.help == 1) {
-        print_help_info();
+        usage();
         exit(0);
     }
 
