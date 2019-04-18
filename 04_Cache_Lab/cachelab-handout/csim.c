@@ -81,6 +81,24 @@ void caching(cache_line* cache, cache_params params, operation op, summary* summ
 
     if (op.operation == 'M')
         summ->hit_count++;
+
+    if (params.verbose == 1) {
+        printf("%c %lx,%d ", op.operation, op.address, op.size);
+        switch (result) {
+            case HIT:
+                printf("hit");
+                break;
+            case MISS:
+                printf("miss");
+                break;
+            case EVICTION:
+                printf("eviction");
+                break;
+        }
+        if (op.operation == 'M')
+            printf(" hit");
+        printf("\n");
+    }
 }
 
 int main(int argc, char** argv) {
