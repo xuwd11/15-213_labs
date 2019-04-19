@@ -1,8 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <!-- saved from url=(0045)http://csapp.cs.cmu.edu/3e/shlab-release.html -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Shell Lab Release Notes</title>
-  </head>
+<html>
 
   <body bgcolor="white">
     <h1>Shell Lab Release Notes</h1>
