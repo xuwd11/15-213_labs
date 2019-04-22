@@ -187,12 +187,13 @@ void eval(char *cmdline)
             setpgid(0, 0);
             sigprocmask(SIG_SETMASK, &prev_one, NULL);
             if (execve(argv[0], argv, environ) < 0) {
-                fprintf(stderr, "%s: Command not found.\n", argv[0]);
+                fprintf(stderr, "%s: Command not found\n", argv[0]);
                 exit(0);
             }
         }
         sigprocmask(SIG_BLOCK, &mask_all, NULL);
         addjob(jobs, pid, bg ? BG : FG, cmdline);
+        sigprocmask(SIG_SETMASK, &prev_one, NULL);
 
         if (!bg)
             waitfg(pid);
