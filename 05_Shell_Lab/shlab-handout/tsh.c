@@ -201,7 +201,6 @@ void eval(char *cmdline)
             printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
     }
 
-
     return;
 }
 
@@ -353,6 +352,7 @@ void sigchld_handler(int sig)
     int status;
     sigset_t mask_all, prev_all;
     pid_t pid;
+    int jid;
 
     sigfillset(&mask_all);
     while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
@@ -360,6 +360,23 @@ void sigchld_handler(int sig)
             sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
             deletejob(jobs, pid);
             sigprocmask(SIG_SETMASK, &prev_all, NULL);
+        }
+        else if (WIFSTOPPED(status)) {
+            jid = pid2jid(pid);
+            if (jid != 0 && getjobjid(jobs, jid)->state != ST) {
+                getjobjid(jobs, jid)->state = ST;
+                printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, WSTOPSIG(status));
+            }
+        }
+        else if (WIFSIGNALED(status)) {
+            jid = pid2jid(pid);
+            if (jid != 0) {
+                sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+                deletejob(jobs, pid);
+                sigprocmask(SIG_SETMASK, &prev_all, NULL);
+                kill(-pid, WTERMSIG(status));
+                printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, WTERMSIG(status));
+            }
         }
     }
 
@@ -626,6 +643,3 @@ void sigquit_handler(int sig)
     printf("Terminating after receipt of SIGQUIT signal\n");
     exit(1);
 }
-
-
-
