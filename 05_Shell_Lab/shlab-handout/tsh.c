@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 
     exit(0); /* control never reaches here */
 }
-  
+
 /* 
  * eval - Evaluate the command line that the user has just typed in
  * 
@@ -165,6 +165,42 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+    char *argv[MAXARGS];
+    char buf[MAXLINE];
+    int bg;
+    pid_t pid;
+    sigset_t mask_all, mask_one, prev_one;
+
+    strcpy(buf, cmdline);
+    bg = parseline(buf, argv);
+
+    if (argv[0] == NULL)
+        return;
+    
+    if (!builtin_cmd(argv)) {
+        sigfillset(&mask_all);
+        sigemptyset(&mask_one);
+        sigaddset(&mask_one, SIGCHLD);
+
+        sigprocmask(SIG_BLOCK, &mask_one, &prev_one);
+        if ((pid = fork()) == 0) {
+            setpgid(0, 0);
+            sigprocmask(SIG_SETMASK, &prev_one, NULL);
+            if (execve(argv[0], argv, environ) < 0) {
+                fprintf(stderr, "%s: Command not found.\n", argv[0]);
+                exit(0);
+            }
+        }
+        sigprocmask(SIG_BLOCK, &mask_all, NULL);
+        addjob(jobs, pid, bg ? BG : FG, cmdline);
+
+        if (!bg)
+            waitfg(pid);
+        else
+            printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
+    }
+
+
     return;
 }
 
@@ -231,6 +267,8 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
+    if (strcmp(argv[0], "quit") == 0)
+        exit(0);
     return 0;     /* not a builtin command */
 }
 
@@ -247,6 +285,8 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    while (pid == fgpid(jobs))
+        usleep(1000);
     return;
 }
 
