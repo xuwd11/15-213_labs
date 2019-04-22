@@ -270,6 +270,10 @@ int builtin_cmd(char **argv)
 {
     if (strcmp(argv[0], "quit") == 0)
         exit(0);
+    else if (strcmp(argv[0], "jobs") == 0) {
+        listjobs(jobs);
+        return 1;
+    }
     return 0;     /* not a builtin command */
 }
 
@@ -327,6 +331,7 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+
     return;
 }
 
