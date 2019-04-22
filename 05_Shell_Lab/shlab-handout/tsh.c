@@ -331,7 +331,17 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-
+    sigset_t mask_all, prev_all;
+    pid_t pid = fgpid(jobs);
+    sigfillset(&mask_all);
+    int jid = pid2jid(pid);
+    if (jid != 0) {
+        sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+        deletejob(jobs, pid);
+        sigprocmask(SIG_SETMASK, &prev_all, NULL);
+        kill(-pid, sig);
+        printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, sig);
+    }
     return;
 }
 
