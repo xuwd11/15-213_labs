@@ -397,7 +397,6 @@ void sigchld_handler(int sig)
                 Sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
                 deletejob(jobs, pid);
                 Sigprocmask(SIG_SETMASK, &prev_all, NULL);
-                //Kill(-pid, WTERMSIG(status));
                 printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, WTERMSIG(status));
             }
         }
