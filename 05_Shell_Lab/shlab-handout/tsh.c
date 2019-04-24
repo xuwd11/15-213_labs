@@ -198,22 +198,22 @@ void eval(char *cmdline)
         return;
     
     if (!builtin_cmd(argv)) {
-        sigfillset(&mask_all);
-        sigemptyset(&mask_one);
-        sigaddset(&mask_one, SIGCHLD);
+        Sigfillset(&mask_all);
+        Sigemptyset(&mask_one);
+        Sigaddset(&mask_one, SIGCHLD);
 
-        sigprocmask(SIG_BLOCK, &mask_one, &prev_one);
-        if ((pid = fork()) == 0) {
-            setpgid(0, 0);
-            sigprocmask(SIG_SETMASK, &prev_one, NULL);
+        Sigprocmask(SIG_BLOCK, &mask_one, &prev_one);
+        if ((pid = Fork()) == 0) {
+            Setpgid(0, 0);
+            Sigprocmask(SIG_SETMASK, &prev_one, NULL);
             if (execve(argv[0], argv, environ) < 0) {
                 fprintf(stderr, "%s: Command not found\n", argv[0]);
                 exit(0);
             }
         }
-        sigprocmask(SIG_BLOCK, &mask_all, NULL);
+        Sigprocmask(SIG_BLOCK, &mask_all, NULL);
         addjob(jobs, pid, bg ? BG : FG, cmdline);
-        sigprocmask(SIG_SETMASK, &prev_one, NULL);
+        Sigprocmask(SIG_SETMASK, &prev_one, NULL);
 
         if (!bg)
             waitfg(pid);
@@ -334,12 +334,12 @@ void do_bgfg(char **argv)
 
     if (strcmp(argv[0], "bg") == 0) {
         job->state = BG;
-        kill(-job->pid, SIGCONT);
+        Kill(-job->pid, SIGCONT);
         printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
     }
     else {
         job->state = FG;
-        kill(-job->pid, SIGCONT);
+        Kill(-job->pid, SIGCONT);
         waitfg(job->pid);
     }
 
@@ -352,10 +352,10 @@ void do_bgfg(char **argv)
 void waitfg(pid_t pid)
 {
     sigset_t mask;
-    sigemptyset(&mask);
+    Sigemptyset(&mask);
     while (pid == fgpid(jobs))
-        sigsuspend(&mask);
-    sigprocmask(SIG_SETMASK, &mask, NULL);
+        Sigsuspend(&mask);
+    Sigprocmask(SIG_SETMASK, &mask, NULL);
     return;
 }
 
@@ -377,12 +377,12 @@ void sigchld_handler(int sig)
     pid_t pid;
     int jid;
 
-    sigfillset(&mask_all);
+    Sigfillset(&mask_all);
     while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
         if (WIFEXITED(status)) {
-            sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+            Sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
             deletejob(jobs, pid);
-            sigprocmask(SIG_SETMASK, &prev_all, NULL);
+            Sigprocmask(SIG_SETMASK, &prev_all, NULL);
         }
         else if (WIFSTOPPED(status)) {
             jid = pid2jid(pid);
@@ -394,10 +394,10 @@ void sigchld_handler(int sig)
         else if (WIFSIGNALED(status)) {
             jid = pid2jid(pid);
             if (jid != 0) {
-                sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+                Sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
                 deletejob(jobs, pid);
-                sigprocmask(SIG_SETMASK, &prev_all, NULL);
-                kill(-pid, WTERMSIG(status));
+                Sigprocmask(SIG_SETMASK, &prev_all, NULL);
+                //Kill(-pid, WTERMSIG(status));
                 printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, WTERMSIG(status));
             }
         }
@@ -415,13 +415,13 @@ void sigint_handler(int sig)
 {
     sigset_t mask_all, prev_all;
     pid_t pid = fgpid(jobs);
-    sigfillset(&mask_all);
+    Sigfillset(&mask_all);
     int jid = pid2jid(pid);
     if (jid != 0) {
-        sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+        Sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
         deletejob(jobs, pid);
-        sigprocmask(SIG_SETMASK, &prev_all, NULL);
-        kill(-pid, sig);
+        Sigprocmask(SIG_SETMASK, &prev_all, NULL);
+        Kill(-pid, sig);
         printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, sig);
     }
     return;
@@ -436,13 +436,13 @@ void sigtstp_handler(int sig)
 {
     sigset_t mask_all, prev_all;
     pid_t pid = fgpid(jobs);
-    sigfillset(&mask_all);
+    Sigfillset(&mask_all);
     int jid = pid2jid(pid);
     if (jid != 0 && getjobjid(jobs, jid)->state != ST) {
-        sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
+        Sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
         getjobjid(jobs, jid)->state = ST;
-        sigprocmask(SIG_SETMASK, &prev_all, NULL);
-        kill(-pid, sig);
+        Sigprocmask(SIG_SETMASK, &prev_all, NULL);
+        Kill(-pid, sig);
         printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, sig);
     }
     return;
@@ -649,7 +649,7 @@ handler_t *Signal(int signum, handler_t *handler)
     struct sigaction action, old_action;
 
     action.sa_handler = handler;  
-    sigemptyset(&action.sa_mask); /* block sigs of type being handled */
+    Sigemptyset(&action.sa_mask); /* block sigs of type being handled */
     action.sa_flags = SA_RESTART; /* restart syscalls if possible */
 
     if (sigaction(signum, &action, &old_action) < 0)
