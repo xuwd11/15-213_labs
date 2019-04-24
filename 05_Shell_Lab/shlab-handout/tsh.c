@@ -86,6 +86,26 @@ typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
 
 /*
+ * Wrappers for Unix process control functions from
+ * http://www.cs.cmu.edu/afs/cs/academic/class/15213-f15/www/code/15-ecf-signals/csapp.c
+ */
+ pid_t Fork(void);
+ void Execve(const char *filename, char *const argv[], char *const envp[]);
+ pid_t Waitpid(pid_t pid, int *iptr, int options);
+ void Kill(pid_t pid, int signum);
+ void Setpgid(pid_t pid, pid_t pgid);
+
+ /*
+ * Wrappers for Unix signal functions from
+ * http://www.cs.cmu.edu/afs/cs/academic/class/15213-f15/www/code/15-ecf-signals/csapp.c
+ */
+void Sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+void Sigemptyset(sigset_t *set);
+void Sigfillset(sigset_t *set);
+void Sigaddset(sigset_t *set, int signum);
+int Sigsuspend(const sigset_t *set);
+
+/*
  * main - The shell's main routine 
  */
 int main(int argc, char **argv) 
@@ -645,4 +665,94 @@ void sigquit_handler(int sig)
 {
     printf("Terminating after receipt of SIGQUIT signal\n");
     exit(1);
+}
+
+/*********************************************
+ * Wrappers for Unix process control functions
+ ********************************************/
+
+/* $begin forkwrapper */
+pid_t Fork(void) 
+{
+    pid_t pid;
+
+    if ((pid = fork()) < 0)
+	unix_error("Fork error");
+    return pid;
+}
+/* $end forkwrapper */
+
+void Execve(const char *filename, char *const argv[], char *const envp[]) 
+{
+    if (execve(filename, argv, envp) < 0)
+	unix_error("Execve error");
+}
+
+/* $begin waitpid */
+pid_t Waitpid(pid_t pid, int *iptr, int options) 
+{
+    pid_t retpid;
+
+    if ((retpid  = waitpid(pid, iptr, options)) < 0) 
+	unix_error("Waitpid error");
+    return(retpid);
+}
+/* $end waitpid */
+
+/* $begin kill */
+void Kill(pid_t pid, int signum) 
+{
+    int rc;
+
+    if ((rc = kill(pid, signum)) < 0)
+	unix_error("Kill error");
+}
+/* $end kill */
+
+void Setpgid(pid_t pid, pid_t pgid) {
+    int rc;
+
+    if ((rc = setpgid(pid, pgid)) < 0)
+	unix_error("Setpgid error");
+    return;
+}
+
+/************************************
+ * Wrappers for Unix signal functions 
+ ***********************************/
+
+void Sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+{
+    if (sigprocmask(how, set, oldset) < 0)
+	unix_error("Sigprocmask error");
+    return;
+}
+
+void Sigemptyset(sigset_t *set)
+{
+    if (sigemptyset(set) < 0)
+	unix_error("Sigemptyset error");
+    return;
+}
+
+void Sigfillset(sigset_t *set)
+{ 
+    if (sigfillset(set) < 0)
+	unix_error("Sigfillset error");
+    return;
+}
+
+void Sigaddset(sigset_t *set, int signum)
+{
+    if (sigaddset(set, signum) < 0)
+	unix_error("Sigaddset error");
+    return;
+}
+
+int Sigsuspend(const sigset_t *set)
+{
+    int rc = sigsuspend(set); /* always returns -1 */
+    if (errno != EINTR)
+        unix_error("Sigsuspend error");
+    return rc;
 }
