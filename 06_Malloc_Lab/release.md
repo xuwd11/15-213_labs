@@ -1,8 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <!-- saved from url=(0049)http://csapp.cs.cmu.edu/3e/malloclab-release.html -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Malloc Lab Release Notes</title>
-  </head>
+<html>
 
   <body bgcolor="white">
     <h1>Malloc Lab Release Notes</h1>
