@@ -51,29 +51,29 @@ team_t team = {
 
 #define PACK(size, status) ((size) | (status))
 
-#define GET(p) (*(unsigned int *)(p))
-#define GET_SIZE(p) (GET(p) & ~0X7)
-#define GET_ALLOC(p) (GET(p) & 0X1)
-#define GET_RA(p) (GET(p) & 0X2)
-#define SET_RA(p) (GET(p) |= 0X2)
-#define REMOVE_RA(p) (GET(p) &= ~0X2)
+#define GET(ptr) (*(unsigned int *)(ptr))
+#define GET_SIZE(ptr) (GET(ptr) & ~0X7)
+#define GET_ALLOC(ptr) (GET(ptr) & 0X1)
+#define GET_RA(ptr) (GET(ptr) & 0X2)
+#define SET_RA(ptr) (GET(ptr) |= 0X2)
+#define REMOVE_RA(ptr) (GET(ptr) &= ~0X2)
 
-#define PUT(p, val) (GET(p) = (val) | GET_RA(p))
-#define PUT_NORA(p, val) (GET(p) = (val))
+#define PUT(ptr, val) (GET(ptr) = (val) | GET_RA(ptr))
+#define PUT_NORA(ptr, val) (GET(ptr) = (val))
 
-#define SET_P(p, ptr) (GET(p) = (unsigned int)(ptr))
+#define SET_PTR(ptr, ptr2) (GET(ptr) = (unsigned int)(ptr2))
 
-#define HEADERP(p) ((char *)(p) - WSIZE)
-#define FOOTERP(p) ((char *)(p) + GET_SIZE(HEADERP(p)) - DSIZE)
+#define HEADERP(ptr) ((char *)(ptr) - WSIZE)
+#define FOOTERP(ptr) ((char *)(ptr) + GET_SIZE(HEADERP(ptr)) - DSIZE)
 
-#define PREV_BLKP(p) ((char *)(p) - GET_SIZE((char *)(p) - DSIZE))
-#define NEXT_BLKP(p) ((char *)(p) + GET_SIZE((char *)(p) - WSIZE))
+#define PREV_BLKP(ptr) ((char *)(ptr) - GET_SIZE((char *)(ptr) - DSIZE))
+#define NEXT_BLKP(ptr) ((char *)(ptr) + GET_SIZE((char *)(ptr) - WSIZE))
 
-#define PRED_P(p) ((char *)(p))
-#define SUCC_P(p) ((char *)(p) + WSIZE)
+#define PRED_PTR(ptr) ((char *)(ptr))
+#define SUCC_PTR(ptr) ((char *)(ptr) + WSIZE)
 
-#define PRED(p) (*(char **)(p))
-#define SUCC(p) (*(char **)(SUCC_P(p)))
+#define PRED(ptr) (*(char **)(ptr))
+#define SUCC(ptr) (*(char **)(SUCC_PTR(ptr)))
 
 
 /* free list */
