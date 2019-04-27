@@ -83,9 +83,48 @@ void *free_list;
 /* Helper functions */
 static void *extend_heap(size_t size);
 static void *coalesce(void *ptr);
-static void *place(void *ptr, size_t size);
+static void *place(void *ptr, size_t asize);
 static void insert_node(void *ptr, size_t size);
 static void delete_node(void *ptr);
+
+
+static void *insert_node(void *ptr, size_t size) {
+    void *left = free_list;
+    void *right = NULL;
+    // keep the size in a non-decreasing order, and set the free_list to the rightmost node
+    while ((left != NULL) && (size < GET_SIZE(HEADERP(left)))) {
+        right = left;
+        left = PRED(left);
+    }
+    if (left != NULL) {
+        if (right != NULL) { // insert between 2 nodes
+            SET_PTR(PRED_PTR(ptr), left);
+            SET_PTR(SUCC_PTR(left), ptr);
+            SET_PTR(PRED_PTR(right), ptr);
+            SET_PTR(SUCC_PTR(ptr), right);
+        }
+        else { // insert into the rightmost of the list
+            SET_PTR(PRED_PTR(ptr), left);
+            SET_PTR(SUCC_PTR(left), ptr);
+            SET_PTR(SUCC_PTR(ptr), NULL);
+            free_list = ptr;
+        }
+    }
+    else {
+        if (right != NULL) { //insert into the leftmost of the list
+            SET_PTR(PRED_PTR(right), ptr);
+            SET_PTR(SUCC_PTR(ptr), right);
+            SET_PTR(PRED_PTR(ptr), NULL);
+        }
+        else { // initialize empty free list
+            SET_PTR(PRED_PTR(ptr), NULL);
+            SET_PTR(SUCC_PTR(ptr), NULL);
+            free_list = ptr;
+        }
+    }
+    return;
+}
+
 
 
 /* 
