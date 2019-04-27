@@ -80,6 +80,14 @@ team_t team = {
 void *free_list;
 
 
+/* Helper functions */
+static void *extend_heap(size_t size);
+static void *coalesce(void *ptr);
+static void *place(void *ptr, size_t size);
+static void insert_node(void *ptr, size_t size);
+static void delete_node(void *ptr);
+
+
 /* 
  * mm_init - initialize the malloc package.
  */
