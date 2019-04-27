@@ -87,8 +87,7 @@ static void *place(void *ptr, size_t asize);
 static void insert_node(void *ptr, size_t size);
 static void delete_node(void *ptr);
 
-
-static void *insert_node(void *ptr, size_t size) {
+static void insert_node(void *ptr, size_t size) {
     void *left = free_list;
     void *right = NULL;
     // keep the size in a non-decreasing order, and set the free_list to the rightmost node
