@@ -37,6 +37,49 @@ team_t team = {
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
+
+/* additional macros */
+#define WSIZE 4
+#define DSIZE 8
+#define INITCHUNKSIZE (1<<6)
+#define CHUNKSIZE (1<<12)
+
+#define REALLOC_BUFFER (1<<7)
+
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+
+#define PACK(size, status) ((size) | (status))
+
+#define GET(p) (*(unsigned int *)(p))
+#define GET_SIZE(p) (GET(p) & ~0X7)
+#define GET_ALLOC(p) (GET(p) & 0X1)
+#define GET_RA(p) (GET(p) & 0X2)
+#define SET_RA(p) (GET(p) |= 0X2)
+#define REMOVE_RA(p) (GET(p) &= ~0X2)
+
+#define PUT(p, val) (GET(p) = (val) | GET_RA(p))
+#define PUT_NORA(p, val) (GET(p) = (val))
+
+#define SET_P(p, ptr) (GET(p) = (unsigned int)(ptr))
+
+#define HEADERP(p) ((char *)(p) - WSIZE)
+#define FOOTERP(p) ((char *)(p) + GET_SIZE(HEADERP(p)) - DSIZE)
+
+#define PREV_BLKP(p) ((char *)(p) - GET_SIZE((char *)(p) - DSIZE))
+#define NEXT_BLKP(p) ((char *)(p) + GET_SIZE((char *)(p) - WSIZE))
+
+#define PRED_P(p) ((char *)(p))
+#define SUCC_P(p) ((char *)(p) + WSIZE)
+
+#define PRED(p) (*(char **)(p))
+#define SUCC(p) (*(char **)(SUCC_P(p)))
+
+
+/* free list */
+void *free_list;
+
+
 /* 
  * mm_init - initialize the malloc package.
  */
