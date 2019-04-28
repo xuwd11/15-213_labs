@@ -287,6 +287,13 @@ void *mm_malloc(size_t size)
  */
 void mm_free(void *ptr)
 {
+    size_t size = GET_SIZE(HEADERP(ptr));
+    REMOVE_RA(HEADERP(NEXT_BLKP(ptr)));
+    PUT(HEADERP(ptr), PACK(size, 0));
+    PUT(FOOTERP(ptr), PACK(size, 0));
+    insert_node(ptr, size);
+    coalesce(ptr);
+    return;
 }
 
 /*
