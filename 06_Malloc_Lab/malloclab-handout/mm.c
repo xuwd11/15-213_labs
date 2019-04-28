@@ -34,9 +34,9 @@ RA  : Reallocation tag (1: true, 0:false)
             +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
  Header :   |                              size of the block                                       |  |RA| A|
    ptr ---> +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-            |                        pointer to the next free block in free list                            |
+            |                 pointer to the next free block in free list                                   |
 ptr+WSIZE-> +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-            |                        pointer to the previous free block in free list                        |
+            |                 pointer to the previous free block in free list                               |
             +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
             .                                                                                               .
             .                                                                                               .
