@@ -93,8 +93,8 @@ static void delete_node(void *ptr);
 static void insert_node(void *ptr, size_t size) {
     void *right = free_list;
     void *left = NULL;
-    // keep the size of free blocks in a non-increasing order
-    while ((right != NULL) && (size < GET_SIZE(HEADERP(right)))) {
+    // keep the size of free blocks in a non-decreasing order
+    while ((right != NULL) && (size > GET_SIZE(HEADERP(right)))) {
         left = right;
         right = NEXT(right);
     }
@@ -256,14 +256,30 @@ int mm_init(void)
  */
 void *mm_malloc(size_t size)
 {
-    int newsize = ALIGN(size + SIZE_T_SIZE);
-    void *p = mem_sbrk(newsize);
-    if (p == (void *)-1)
-	return NULL;
-    else {
-        *(size_t *)p = size;
-        return (void *)((char *)p + SIZE_T_SIZE);
+    if (size == 0)
+        return NULL;
+    
+    void *ptr = NULL;
+    size_t asize;
+    size_t extendsize;
+
+    if (size < DSIZE)
+        asize = 2 * DSIZE;
+    else
+        asize = ALIGN(size + DSIZE);
+    
+    ptr = free_list;
+    while ((ptr != NULL) && ((asize > GET_SIZE(HEADERP(ptr))) || (GET_RA(HEADERP(ptr)))))
+        ptr = NEXT(ptr);
+    if (ptr == NULL) {
+        extendsize = MAX(asize, CHUNKSIZE);
+        if ((ptr = extend_heap(extendsize)) == NULL)
+            return NULL;
     }
+
+    ptr = place(ptr, asize);
+
+    return ptr;
 }
 
 /*
