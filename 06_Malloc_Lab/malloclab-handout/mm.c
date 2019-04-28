@@ -233,6 +233,7 @@ static void *place(void *ptr, size_t asize) {
 
 /* 
  * mm_init - initialize the malloc package.
+ * reset free list and initialize heap area
  */
 int mm_init(void)
 {
