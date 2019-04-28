@@ -1,6 +1,8 @@
 /*
  * Explicit free list
  * in https://github.com/mightydeveloper/Malloc-Lab/blob/master/mm.c
+ *
+ * 98/100 was achieved without segregated free list
  */
 
 /***********************************************************************************************************
