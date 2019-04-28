@@ -202,6 +202,35 @@ static void *extend_heap(size_t size) {
     return coalesce(ptr);
 }
 
+static void *place(void *ptr, size_t asize) {
+    size_t psize = GET_SIZE(HEADERP(ptr));
+    size_t remainder = psize - asize;
+
+    delete_node(ptr);
+
+    if (remainder <= DSIZE * 2) { // don't split
+        PUT(HEADERP(ptr), PACK(psize, 1));
+        PUT(FOOTERP(ptr), PACK(psize, 1));
+    }
+    else if (asize >= 100) { // split
+        PUT(HEADERP(ptr), PACK(remainder, 0));
+        PUT(FOOTERP(ptr), PACK(remainder, 0));
+        PUT_NORA(HEADERP(NEXT_BLKP(ptr)), PACK(asize, 1));
+        PUT_NORA(FOOTERP(NEXT_BLKP(ptr)), PACK(asize, 1));
+        insert_node(ptr, remainder);
+        return NEXT_BLKP(ptr);
+    }
+    else { //split
+        PUT(HEADERP(ptr), PACK(asize, 1));
+        PUT(FOOTERP(ptr), PACK(asize, 1));
+        PUT_NORA(HEADERP(NEXT_BLKP(ptr)), PACK(remainder, 0));
+        PUT_NORA(FOOTERP(NEXT_BLKP(ptr)), PACK(remainder, 0));
+        insert_node(NEXT_BLKP(ptr), remainder);
+    }
+    return ptr;
+}
+
+
 /* 
  * mm_init - initialize the malloc package.
  */
