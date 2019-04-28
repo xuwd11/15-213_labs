@@ -301,31 +301,50 @@ void mm_free(void *ptr)
  */
 void *mm_realloc(void *ptr, size_t size)
 {
-    void *oldptr = ptr;
-    void *newptr;
-    size_t copySize;
+    if (ptr == NULL)
+        return mm_malloc(size);
+
+    if (size == 0)
+        return NULL;
     
-    newptr = mm_malloc(size);
-    if (newptr == NULL)
-      return NULL;
-    copySize = *(size_t *)((char *)oldptr - SIZE_T_SIZE);
-    if (size < copySize)
-      copySize = size;
-    memcpy(newptr, oldptr, copySize);
-    mm_free(oldptr);
+    void *newptr = ptr;
+    size_t newsize = size;
+    int remainder, extendsize, blockbuffer;
+
+    if (newsize < DSIZE)
+        newsize = 2 * DSIZE;
+    else
+        newsize = ALIGN(size + DSIZE);
+    
+    newsize += REALLOC_BUFFER;
+
+    blockbuffer = GET_SIZE(HEADERP(ptr)) - newsize;
+
+    if (blockbuffer < 0) {
+        if (GET_ALLOC(HEADERP(NEXT_BLKP(ptr))) == 0 || GET_SIZE(HEADERP(NEXT_BLKP(ptr))) == 0) {
+            remainder = GET_SIZE(HEADERP(ptr)) + GET_SIZE(HEADERP(NEXT_BLKP(ptr))) - newsize;
+            if (remainder < 0) {
+                extendsize = MAX(-remainder, CHUNKSIZE);
+                if (extend_heap(extendsize) == NULL)
+                    return NULL;
+                remainder += extendsize;
+            }
+
+            delete_node(NEXT_BLKP(ptr));
+
+            PUT_NORA(HEADERP(ptr), PACK(newsize + remainder, 1));
+            PUT_NORA(FOOTERP(ptr), PACK(newsize + remainder, 1));
+        }
+        else {
+            newptr = mm_malloc(newsize - DSIZE);
+            memcpy(newptr, ptr, MIN(size, newsize));
+            mm_free(ptr);
+        }
+        blockbuffer = GET_SIZE(HEADERP(newptr)) - newsize;
+    }
+
+    if (blockbuffer < 2 * REALLOC_BUFFER)
+        SET_RA(HEADERP(NEXT_BLKP(newptr)));
+
     return newptr;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
