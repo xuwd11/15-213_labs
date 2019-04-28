@@ -7,3 +7,4 @@ My solution to labs for self-study students in [CS:APP3e](http://csapp.cs.cmu.ed
 * Lab 03: Attack Lab ([**done**](/03_Attack_Lab/target1))
 * Lab 04: Cache Lab ([**done**](/04_Cache_Lab/cachelab-handout))
 * Lab 05: Shell Lab ([**done**](/05_Shell_Lab/shlab-handout/tsh.c))
+* Lab 06: Malloc Lab ([**done**](/06_Malloc_Lab/malloclab-handout/mm.c))
