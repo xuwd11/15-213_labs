@@ -118,7 +118,7 @@ static void insert_node(void *ptr, size_t size) {
             SET_PTR(PREV_PTR(ptr), left);
             SET_PTR(NEXT_PTR(ptr), NULL);
         }
-        else { // initialize empty free list
+        else { // initialize from an empty free list
             SET_PTR(NEXT_PTR(ptr), NULL);
             SET_PTR(PREV_PTR(ptr), NULL);
             free_list = ptr;
@@ -127,7 +127,26 @@ static void insert_node(void *ptr, size_t size) {
     return;
 }
 
-
+static void delete_node(void *ptr) {
+    if (PREV(ptr) != NULL) {
+        if (NEXT(ptr) != NULL) { // between 2 nodes
+            SET_PTR(NEXT_PTR(PREV(ptr)), NEXT(ptr));
+            SET_PTR(PREV_PTR(NEXT(ptr)), PREV(ptr));
+        }
+        else { // at the end of the free list
+            SET_PTR(NEXT_PTR(PREV(ptr)), NULL);
+        }
+    }
+    else {
+        if (NEXT(ptr) != NULL) { // at the beginning of the free list
+            SET_PTR(PREV_PTR(NEXT(ptr)), NULL);
+            free_list = NEXT(ptr);
+        }
+        else // the only node in the free list
+            free_list = NULL;
+    }
+    return;
+}
 
 /* 
  * mm_init - initialize the malloc package.
