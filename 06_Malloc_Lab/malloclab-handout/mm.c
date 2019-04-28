@@ -148,6 +148,45 @@ static void delete_node(void *ptr) {
     return;
 }
 
+static void *coalesce(void *ptr) {
+    size_t prev_alloc = GET_ALLOC(HEADERP(PREV_BLKP(ptr)));
+    size_t next_alloc = GET_ALLOC(HEADERP(NEXT_BLKP(ptr)));
+    size_t size = GET_SIZE(HEADERP(ptr));
+
+    if (GET_RA(HEADERP(PREV_BLKP(ptr))) == 1)
+        prev_alloc = 1;
+    
+    if (prev_alloc == 1 && next_alloc == 1) // cannot coalesce with previous or next block
+        return ptr;
+    else if (prev_alloc == 1 && next_alloc == 0) { // can coalesce with next block
+        delete_node(ptr);
+        delete_node(NEXT_BLKP(ptr));
+        size += GET_SIZE(HEADERP(NEXT_BLKP(ptr)));
+        PUT(HEADERP(ptr), PACK(size, 0));
+        PUT(FOOTERP(ptr), PACK(size, 0));
+    }
+    else if (prev_alloc == 0 && next_alloc == 1) { // can coalesce with previous block
+        delete_node(ptr);
+        delete_node(PREV_BLKP(ptr));
+        size += GET_SIZE(HEADERP(PREV_BLKP(ptr)));
+        ptr = PREV_BLKP(ptr);
+        PUT(HEADERP(ptr), PACK(size, 0));
+        PUT(FOOTERP(ptr), PACK(size, 0));
+    }
+    else if (prev_alloc == 0 && next_alloc == 0) { // can coalesce with both previous and next blocks
+        delete_node(ptr);
+        delete_node(PREV_BLKP(ptr));
+        delete_node(NEXT_BLKP(ptr));
+        size += (GET_SIZE(HEADERP(NEXT_BLKP(ptr))) + GET_SIZE(HEADERP(PREV_BLKP(ptr))));
+        ptr = PREV_BLKP(ptr);
+        PUT(HEADERP(ptr), PACK(size, 0));
+        PUT(FOOTERP(ptr), PACK(size, 0));
+    }
+    insert_node(ptr, size);
+    return ptr;
+}
+
+
 /* 
  * mm_init - initialize the malloc package.
  */
