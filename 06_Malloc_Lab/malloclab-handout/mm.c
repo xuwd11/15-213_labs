@@ -66,14 +66,17 @@ team_t team = {
 #define HEADERP(ptr) ((char *)(ptr) - WSIZE)
 #define FOOTERP(ptr) ((char *)(ptr) + GET_SIZE(HEADERP(ptr)) - DSIZE)
 
-#define PREV_BLKP(ptr) ((char *)(ptr) - GET_SIZE((char *)(ptr) - DSIZE))
+// Address of physically next and previous blocks
 #define NEXT_BLKP(ptr) ((char *)(ptr) + GET_SIZE((char *)(ptr) - WSIZE))
+#define PREV_BLKP(ptr) ((char *)(ptr) - GET_SIZE((char *)(ptr) - DSIZE))
 
-#define PRED_PTR(ptr) ((char *)(ptr))
-#define SUCC_PTR(ptr) ((char *)(ptr) + WSIZE)
+// Pointers that store the address of next and previous blocks in a free block
+#define NEXT_PTR(ptr) ((char *)(ptr))
+#define PREV_PTR(ptr) ((char *)(ptr) + WSIZE)
 
-#define PRED(ptr) (*(char **)(ptr))
-#define SUCC(ptr) (*(char **)(SUCC_PTR(ptr)))
+// Address of the next and previous blocks in the free list
+#define NEXT(ptr) (*(char **)(ptr))
+#define PREV(ptr) (*(char **)(PREV_PTR(ptr)))
 
 
 /* free list */
@@ -88,36 +91,36 @@ static void insert_node(void *ptr, size_t size);
 static void delete_node(void *ptr);
 
 static void insert_node(void *ptr, size_t size) {
-    void *left = free_list;
-    void *right = NULL;
-    // keep the size in a non-decreasing order, and set the free_list to the rightmost node
-    while ((left != NULL) && (size < GET_SIZE(HEADERP(left)))) {
-        right = left;
-        left = PRED(left);
+    void *right = free_list;
+    void *left = NULL;
+    // keep the size of free blocks in a non-increasing order
+    while ((right != NULL) && (size < GET_SIZE(HEADERP(right)))) {
+        left = right;
+        right = NEXT(right);
     }
-    if (left != NULL) {
-        if (right != NULL) { // insert between 2 nodes
-            SET_PTR(PRED_PTR(ptr), left);
-            SET_PTR(SUCC_PTR(left), ptr);
-            SET_PTR(PRED_PTR(right), ptr);
-            SET_PTR(SUCC_PTR(ptr), right);
+    if (right != NULL) {
+        if (left != NULL) { // insert between 2 nodes
+            SET_PTR(PREV_PTR(ptr), left);
+            SET_PTR(NEXT_PTR(left), ptr);
+            SET_PTR(PREV_PTR(right), ptr);
+            SET_PTR(NEXT_PTR(ptr), right);
         }
-        else { // insert into the rightmost of the list
-            SET_PTR(PRED_PTR(ptr), left);
-            SET_PTR(SUCC_PTR(left), ptr);
-            SET_PTR(SUCC_PTR(ptr), NULL);
+        else { // insert into the beginning of the list
+            SET_PTR(NEXT_PTR(ptr), right);
+            SET_PTR(PREV_PTR(right), ptr);
+            SET_PTR(PREV_PTR(ptr), NULL);
             free_list = ptr;
         }
     }
     else {
-        if (right != NULL) { //insert into the leftmost of the list
-            SET_PTR(PRED_PTR(right), ptr);
-            SET_PTR(SUCC_PTR(ptr), right);
-            SET_PTR(PRED_PTR(ptr), NULL);
+        if (left != NULL) { //insert into the end of the list
+            SET_PTR(NEXT_PTR(left), ptr);
+            SET_PTR(PREV_PTR(ptr), left);
+            SET_PTR(NEXT_PTR(ptr), NULL);
         }
         else { // initialize empty free list
-            SET_PTR(PRED_PTR(ptr), NULL);
-            SET_PTR(SUCC_PTR(ptr), NULL);
+            SET_PTR(NEXT_PTR(ptr), NULL);
+            SET_PTR(PREV_PTR(ptr), NULL);
             free_list = ptr;
         }
     }
