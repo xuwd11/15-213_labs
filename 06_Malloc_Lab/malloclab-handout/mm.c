@@ -186,6 +186,21 @@ static void *coalesce(void *ptr) {
     return ptr;
 }
 
+static void *extend_heap(size_t size) {
+    void *ptr;
+    size_t asize;
+    asize = ALIGN(size);
+
+    if ((ptr = mem_sbrk(asize)) == (void *)-1)
+        return NULL;
+    
+    PUT_NORA(HEADERP(ptr), PACK(asize, 0));
+    PUT_NORA(FOOTERP(ptr), PACK(asize, 0));
+    PUT_NORA(HEADERP(NEXT_BLKP(ptr)), PAKC(0, 1));
+    insert_node(ptr, asize);
+
+    return coalesce(ptr);
+}
 
 /* 
  * mm_init - initialize the malloc package.
