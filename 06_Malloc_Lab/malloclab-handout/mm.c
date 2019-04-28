@@ -196,7 +196,7 @@ static void *extend_heap(size_t size) {
     
     PUT_NORA(HEADERP(ptr), PACK(asize, 0));
     PUT_NORA(FOOTERP(ptr), PACK(asize, 0));
-    PUT_NORA(HEADERP(NEXT_BLKP(ptr)), PAKC(0, 1));
+    PUT_NORA(HEADERP(NEXT_BLKP(ptr)), PACK(0, 1));
     insert_node(ptr, asize);
 
     return coalesce(ptr);
@@ -241,7 +241,7 @@ int mm_init(void)
     if ((long)(heap = mem_sbrk(4 * WSIZE)) == -1)
         return -1;
     PUT_NORA(heap, 0); // alignment padding
-    PUT_NORA(heap + (1 * WSIZE), PACk(DSIZE, 1)); // prologue header
+    PUT_NORA(heap + (1 * WSIZE), PACK(DSIZE, 1)); // prologue header
     PUT_NORA(heap + (2 * WSIZE), PACK(DSIZE, 1)); // prologue footer
     PUT_NORA(heap + (3 * WSIZE), PACK(0, 1)); // epilogue header
     if (extend_heap(INITCHUNKSIZE) == NULL)
