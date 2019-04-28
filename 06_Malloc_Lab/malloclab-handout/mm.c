@@ -236,6 +236,16 @@ static void *place(void *ptr, size_t asize) {
  */
 int mm_init(void)
 {
+    free_list = NULL;
+    char *heap;
+    if ((long)(heap = mem_sbrk(4 * WSIZE)) == -1)
+        return -1;
+    PUT_NORA(heap, 0); // alignment padding
+    PUT_NORA(heap + (1 * WSIZE), PACk(DSIZE, 1)); // prologue header
+    PUT_NORA(heap + (2 * WSIZE), PACK(DSIZE, 1)); // prologue footer
+    PUT_NORA(heap + (3 * WSIZE), PACK(0, 1)); // epilogue header
+    if (extend_heap(INITCHUNKSIZE) == NULL)
+        return -1;
     return 0;
 }
 
