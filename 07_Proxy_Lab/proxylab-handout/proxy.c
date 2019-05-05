@@ -5,6 +5,7 @@
 /* Recommended max cache and object sizes */
 #define MAX_CACHE_SIZE 1049000
 #define MAX_OBJECT_SIZE 102400
+#define NUM_CACHE_LINE 10
 
 #define MAX_HOSTNAME_LEN 64
 #define MAX_PORT_LEN 20
@@ -25,12 +26,26 @@ typedef struct {
     char header[MAX_HEADER_LEN];
 } header_line;
 
+typedef struct {
+    char *name;
+    char *payload;
+    unsigned long timestamp;
+} cache_line;
+
 static void doit(int fd);
 static void parse_request(int fd, request_line *linep, header_line *headers, int *num_headers);
 static void parse_uri(char *uri, request_line *linep);
 static header_line parse_header(char *buf);
 static int send_to_server(request_line *linep, header_line *headers, int num_headers);
 static void *thread(void *vargp);
+static void initialize_cache();
+static int reader(int fd, char *uri);
+static void writer(char *uri, char *buf, int cache_i);
+
+static cache_line *cache;
+static int usedcnt, readcnt;
+static unsigned long gtime;
+static sem_t mutex, w;
 
 int main(int argc, char **argv)
 {
@@ -46,6 +61,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    initialize_cache();
     listenfd = Open_listenfd(argv[1]);
     while (1) {
         clientlen = sizeof(clientaddr);
@@ -61,8 +77,8 @@ int main(int argc, char **argv)
 
 
 static void doit(int fd) {
-    char buf[MAXLINE], uri[MAXLINE];
-    int total_size, connfd;
+    char buf[MAXLINE], uri[MAXLINE], object_buf[MAX_OBJECT_SIZE];
+    int total_size, connfd, cache_i;
     rio_t rio;
     request_line line;
     header_line headers[20];
@@ -71,15 +87,25 @@ static void doit(int fd) {
 
     strcpy(uri, line.hostname);
     strcpy(uri + strlen(uri), line.path);
+    if((cache_i = reader(fd, uri)) != -1) {
+        fprintf(stdout, "%s from cache\n", uri);
+        fflush(stdout);
+        writer(uri, object_buf, cache_i);
+        return;
+    }
 
     total_size = 0;
     connfd = send_to_server(&line, headers, num_headers);
     Rio_readinitb(&rio, connfd);
     while ((n = Rio_readlineb(&rio, buf, MAXLINE))) {
         Rio_writen(fd, buf, n);
+        strcpy(object_buf + total_size, buf);
         total_size += n;
     }
+    if (total_size < MAX_OBJECT_SIZE)
+        writer(uri, object_buf, -1);
     Close(connfd);
+    return;
 }
 
 static void *thread(void *vargp) {
@@ -157,4 +183,71 @@ static int send_to_server(request_line *linep, header_line *headers, int num_hea
     Rio_writen(clientfd, buf, MAXLINE);
 
     return clientfd;
+}
+
+static void initialize_cache() {
+    Sem_init(&mutex, 0, 1);
+    Sem_init(&w, 0, 1);
+    gtime = 0;
+    readcnt = 0;
+    usedcnt = 0;
+    cache = (cache_line*)Malloc(sizeof(cache_line) * NUM_CACHE_LINE);
+    for (int i = 0; i < NUM_CACHE_LINE; i++) {
+        cache[i].name = Malloc(sizeof(char) * MAXLINE);
+        cache[i].payload = Malloc(sizeof(char) * MAX_OBJECT_SIZE);
+        cache[i].timestamp = -1;
+    }
+}
+
+static int reader(int fd, char *uri){
+    int cache_i = -1;
+    P(&mutex);
+    readcnt++;
+    if (readcnt == 1) {
+        P(&w);
+    }
+    V(&mutex);
+
+    for (int i = 0; i < usedcnt; i++) {
+        if (strcmp(cache[i].name, uri) == 0) {
+            Rio_writen(fd, cache[i].payload, MAX_OBJECT_SIZE);
+            cache_i = i;
+            break;
+        }
+    }
+    P(&mutex);
+    readcnt--;
+    if (readcnt == 0)
+        V(&w);
+    V(&mutex);
+    return cache_i;
+}
+
+static void writer(char *uri, char *buf, int cache_i) {
+    P(&w);
+    if (cache_i != -1)
+        cache[cache_i].timestamp = gtime;
+    else {
+        if (usedcnt < NUM_CACHE_LINE) {
+            strcpy(cache[usedcnt].name, uri);
+            strcpy(cache[usedcnt].payload, buf);
+            cache[usedcnt].timestamp = gtime;
+            usedcnt++;
+        }
+        else {
+            int lru_i = 0;
+            unsigned long lru_t = cache[0].timestamp;
+            for (int i = 1; i < NUM_CACHE_LINE; i++) {
+                if (cache[i].timestamp < lru_t) {
+                    lru_i = i;
+                    lru_t = cache[i].timestamp;
+                }
+            }
+            strcpy(cache[lru_i].name, uri);
+            strcpy(cache[lru_i].payload, buf);
+            cache[lru_i].timestamp = gtime;
+        }
+    }
+    gtime++;
+    V(&w);
 }
