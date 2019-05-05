@@ -30,10 +30,12 @@ static void parse_request(int fd, request_line *linep, header_line *headers, int
 static void parse_uri(char *uri, request_line *linep);
 static header_line parse_header(char *buf);
 static int send_to_server(request_line *linep, header_line *headers, int num_headers);
+static void *thread(void *vargp);
 
 int main(int argc, char **argv)
 {
     printf("%s", user_agent_hdr);
+    pthread_t tid;
     int listenfd, *connfd;
     char hostname[MAXLINE], port[MAXLINE];
     socklen_t clientlen;
@@ -51,7 +53,7 @@ int main(int argc, char **argv)
         *connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
         Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE, 0);
         printf("Accepted connection from (%s, %s)\n", hostname, port);
-        doit(*((int*)connfd));
+        Pthread_create(&tid, NULL, thread, connfd);
     }
 
     return 0;
@@ -78,6 +80,15 @@ static void doit(int fd) {
         total_size += n;
     }
     Close(connfd);
+}
+
+static void *thread(void *vargp) {
+    int connfd = *((int*)vargp);
+    Pthread_detach(pthread_self());
+    Free(vargp);
+    doit(connfd);
+    Close(connfd);
+    return NULL;
 }
 
 static void parse_request(int fd, request_line *linep, header_line *headers, int *num_headers) {
