@@ -8,3 +8,4 @@ My solution to labs for self-study students in [CS:APP3e](http://csapp.cs.cmu.ed
 * Lab 04: Cache Lab ([**done**](/04_Cache_Lab/cachelab-handout))
 * Lab 05: Shell Lab ([**done**](/05_Shell_Lab/shlab-handout/tsh.c))
 * Lab 06: Malloc Lab ([**done**](/06_Malloc_Lab/malloclab-handout/mm.c))
+* Lab 07: Proxy Lab ([**done**](/07_Proxy_Lab/proxylab-handout/proxy.c))
