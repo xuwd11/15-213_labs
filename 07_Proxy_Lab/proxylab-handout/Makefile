@@ -26,4 +26,6 @@ handin:
 
 clean:
 	rm -f *~ *.o proxy core *.tar *.zip *.gzip *.bzip *.gz
+	rm -rf .noproxy .proxy
+	(cd tiny; make clean)
 
